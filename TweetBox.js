@@ -24,8 +24,8 @@ var sys = require('sys')
   , OAuth = require("oauth").OAuth
   ;
 // Les données necessaires pour l'Oauth Twitter
-var my_consumer_key="5UfcPwbdONeSeGnm9ouw";
-var my_consumer_secret= "5Ban3CJVuWcoKjiavaO5w8ZcW2hD4kxE7hhAnbn8c"; 
+var my_consumer_key=" ";
+var my_consumer_secret= " "; 
 
 var oauthConsumer = new OAuth(
     "http://twitter.com/oauth/request_token",
@@ -33,8 +33,8 @@ var oauthConsumer = new OAuth(
     my_consumer_key,  my_consumer_secret, 
     "1.0", null, "HMAC-SHA1");
 var twitterClient = tweasy.init(oauthConsumer, {
-  access_token : "64672523-b4mon2mMfVTomqSSigMDTOxX3tUaX9k0IrR4QtPCr",//my_users_access_token,
-  access_token_secret : "B84lpdrf9mjf0MvOIBaIZJOG382ghtnNYWryKOl6g",//my_users_access_token_secret
+  access_token : " ",//my_users_access_token,
+  access_token_secret : " ",//my_users_access_token_secret
 });
 // Lancement du serveur Node.js
 var app = express.createServer(
