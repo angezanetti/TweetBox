@@ -52,8 +52,7 @@ String tweetMessage;
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte server[] = { 192,168,1,110 }; // HTTP Local Server !
 
-// Twitter twitter("64672523-aC8yCLIAthqEzq3hzcYxrb1CbhPbEXXnHiOeW3M2B");	// GuitoolSoftware
-Twitter twitter("116678473-iaHS8tlb2d6URA4cbc3TTuxqTlxVqI8QsEBNpojp"); 		// CoworkingLille
+Twitter twitter("Your Authorization token here");
 Client client(server, 3000);
 
 /*
