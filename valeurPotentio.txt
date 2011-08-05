@@ -1,0 +1,10 @@
+{"cwlStatus": [
+        "L'espace de #CoworkingLille est ouvert! ",
+		"Le café du #CoworkingLille est pret! ",
+		"Période de concentration profonde au #CoworkingLille",
+		"Musique et ambiance festive ! #coworkinglille", 
+		"C'est l'heure de l'apéro... Envie d'un verre ? #coworkinglille", 
+		"On déjeune ? Qui vient Coluncher ce midi ! #coworkinglille",
+		"Ouverture de la session Atelier. http://coworkinglille.com/evenements.php #coworkinglille",
+		"On a bien bossé, on ferme ! On se voit demain ? #coworkinglille"
+	    ]}
