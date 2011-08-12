@@ -12,7 +12,6 @@
 #include <Ethernet.h>
 #include <EthernetDHCP.h>
 #include <EthernetDNS.h>
-#include <Twitter.h>
 
 // Function header
 const char* ip_to_str(const uint8_t*);
@@ -29,22 +28,15 @@ typedef enum {
 
 
 const int buttonPin 		= 2;      // pushbutton pin number
-const int ledYellowPin 		= 6;      // yellow led pin number
-const int ledRedPin 		= 5;      // red led pin number
+const int ledYellowPin 		= 5;      // yellow led pin number
+const int ledRedPin 		= 6;      // red led pin number
 const int potentiometerPin	= A0;	  // potentiometer analog port
 
-const char* events[8] = {"L'espace est ouvert !\0",
-                        "Le café du Coworking est pret.\0",
-                        "Période de concentration profonde au Cowork\0",
-                        "Musique et ambiance festive !\0",
-                        "C'est l'heure de l'apéro... Envie d'un verre ?\0",
-                        "On déjeune ? Qui vient Coluncher ce midi !\0",
-                        "Ouverture de la session Atelier.\0",
-                        "On a bien bossé, on ferme ! On se voit demain ?"};
-                        
 // variables will change:
 int buttonState = 0;         // variable for reading the pushbutton status
 int oldeventSelection = 0;
+boolean blinkYellow = false;
+boolean blinkRed = false;
                         
 String tweetMessage;
 
@@ -52,7 +44,6 @@ String tweetMessage;
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte server[] = { 192,168,1,110 }; // HTTP Local Server !
 
-Twitter twitter("Your Authorization token here");
 Client client(server, 3000);
 
 /*
@@ -132,23 +123,20 @@ void loop(){
 		client.stop();
 		// wait a litle bit in case the user fall asleep on the button ;)
 		delay(800);
-	} else {											// ... else fallback to tweeter API
-		if (twitter.post(pszTweetContent) ) {
-		  int status = twitter.wait();
-		  if (status == 200) {
-			  Serial.println("OK");
-		  } else {
-			  Serial.print("failed : code ");
-			  Serial.println(status);
-		  }
-		} else {
-		  Serial.println("connection failed.");
-		}
+	} else {											// ... else show blinking red led
+        // light red led
+        digitalWrite(ledYellowPin, LOW);
+        for (int i=0; i<10; i++) {
+            digitalWrite(ledRedPin, HIGH);
+            delay(100);
+            digitalWrite(ledRedPin, LOW);
+            delay(100);
+        }
 	}
   } else {
     // Return to waiting state
     digitalWrite(ledYellowPin, LOW);
-    digitalWrite(ledRedPin, HIGH);
+    digitalWrite(ledRedPin, LOW);
   }
 }
 
