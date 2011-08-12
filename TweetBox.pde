@@ -35,9 +35,13 @@ const int potentiometerPin	= A0;	  // potentiometer analog port
 // variables will change:
 int buttonState = 0;         // variable for reading the pushbutton status
 int oldeventSelection = 0;
-boolean blinkYellow = false;
+boolean blinkYellow = true;
 boolean blinkRed = false;
-                        
+long previousMillis = 0;     // will store last time LED was updated
+int interval = 5;
+int currentLedStep = 1;
+int intervalLedStep = 1;
+
 String tweetMessage;
 
 
@@ -66,49 +70,63 @@ void setup() {
  *	Main Loop
  */
 void loop(){
-  ////////////////////////////////////////////////////////////////////////////////////////
-  // ETHERNET State Polling
-  static DhcpState prevState = DhcpStateNone;
-  static unsigned long prevTime = 0;
-  DhcpState state = EthernetDHCP.poll();
-  if (prevState != state) {
-    OutputIpAdress();
-    prevState = state;
-  }
+    unsigned long currentMillis = millis();
+    
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // ETHERNET State Polling
+    static DhcpState prevState = DhcpStateNone;
+    static unsigned long prevTime = 0;
+    DhcpState state = EthernetDHCP.poll();
+    if (prevState != state) {
+        OutputIpAdress();
+        prevState = state;
+    }
   
-  ////////////////////////////////////////////////////////////////////////////////////////
-  // HARDWARE Potentiometer Stuff
-  buttonState = digitalRead(buttonPin);
-  // Work on approx PI angle
-  int potarLevel = analogRead(potentiometerPin);
-  potarLevel = constrain(potarLevel, 75, 900);
-  // Transform level to event array index
-  int eventSelection = map(potarLevel, 70, 950, 0, 8);
-  // Format Twitter message
-  tweetMessage = events[eventSelection];
-  tweetMessage.concat(" \n(");
-  tweetMessage.concat(millis());
-  tweetMessage.concat(")");
-  // Debug output
-  if(eventSelection != oldeventSelection) {
-    Serial.print("Selected Message : ");
-  	Serial.print(eventSelection);
-  	Serial.print(" = (");
-  	Serial.print(tweetMessage);
-  	Serial.println(")");
-  	oldeventSelection = eventSelection;
-  }
-  // Convert String to char array
-  char pszTweetContent[146];
-  tweetMessage.toCharArray(pszTweetContent, sizeof(pszTweetContent));
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Blinking led
+    if (blinkYellow) {
+        if(currentMillis - previousMillis > interval) {
+            // save the last step
+            previousMillis = currentMillis;
+            // change the led intensity
+            analogWrite(ledYellowPin, (currentLedStep<0?0:currentLedStep)/6);
+            Serial.println(currentLedStep);
+            // calc our next intensity step
+            currentLedStep += intervalLedStep;
+            if (currentLedStep >= 400) {
+                intervalLedStep = -1;
+            }
+            if (currentLedStep <= -200) {
+                intervalLedStep = 1;
+            }
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // HARDWARE Potentiometer Stuff
+    buttonState = digitalRead(buttonPin);
+    // Work on approx PI angle
+    int potarLevel = analogRead(potentiometerPin);
+    potarLevel = constrain(potarLevel, 75, 900);
+    // Transform level to event array index
+    int eventSelection = map(potarLevel, 70, 950, 0, 8);
+    // Debug output
+    if(eventSelection != oldeventSelection) {
+        Serial.print("Selected Message : ");
+        Serial.print(eventSelection);
+        oldeventSelection = eventSelection;
+    }
+    // Convert String to char array
+    char pszTweetContent[146];
+    tweetMessage.toCharArray(pszTweetContent, sizeof(pszTweetContent));
   
   ////////////////////////////////////////////////////////////////////////////////////////
   // TWITTER BUTTON
   if (buttonState == LOW) {
   	Serial.println("Pushed button state...");
     // turn LED on
-    digitalWrite(ledRedPin, LOW);
-    digitalWrite(ledYellowPin, HIGH);
+    analogWrite(ledRedPin, LOW);
+    analogWrite(ledYellowPin, 250);
     // Send Tweet
     if (client.connect()) {								// trying with the HTTP server...
 		Serial.println("connected to the HTTP server...");
@@ -125,18 +143,18 @@ void loop(){
 		delay(800);
 	} else {											// ... else show blinking red led
         // light red led
-        digitalWrite(ledYellowPin, LOW);
+        analogWrite(ledYellowPin, LOW);
         for (int i=0; i<10; i++) {
-            digitalWrite(ledRedPin, HIGH);
+            analogWrite(ledRedPin, 250);
             delay(100);
-            digitalWrite(ledRedPin, LOW);
+            analogWrite(ledRedPin, LOW);
             delay(100);
         }
 	}
   } else {
     // Return to waiting state
-    digitalWrite(ledYellowPin, LOW);
-    digitalWrite(ledRedPin, LOW);
+    analogWrite(ledYellowPin, LOW);
+    analogWrite(ledRedPin, LOW);
   }
 }
 
