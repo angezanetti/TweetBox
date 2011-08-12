@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.		//	
 // //////////////////////////////////////////////////////////////////////////////////// //
 
-// Tweetbox requires express & Tweasy to works. Install it with NPM
+// Tweetbox requires express -github.com/visionmedia/express - & Tweasy - github.com/jchris/tweasy -  to works.
 var express = require('express');
 var sys = require('sys')
   , tweasy = require("tweasy")
@@ -26,23 +26,35 @@ var sys = require('sys')
 var fs = require('fs');
 var sys = require('sys');
 
-// The Oauth values, you can found it on dev.twitter.com
-var my_consumer_key="0";
-var my_consumer_secret= "0"; 
-var oauthConsumer = new OAuth(
-    "http://twitter.com/oauth/request_token",
-    "http://twitter.com/oauth/access_token", 
-    my_consumer_key,  my_consumer_secret, 
-    "1.0", null, "HMAC-SHA1");
-var twitterClient = tweasy.init(oauthConsumer, {
-  access_token : "0",
-  access_token_secret : "0",
+////
+var twitterClient;
+
+// Parse the Json file to get the Twitter API Ids.
+fs.readFile('IdTwitter.json', function (err, data) {
+  	if (err) throw err;
+  	idApi = JSON.parse(data);
+	var my_consumer_key = idApi.my_consumer_key;
+	var my_consumer_secret = idApi.my_consumer_secret;
+	var my_access_token = idApi.access_token;
+	var my_access_token_secret = idApi.access_token_secret;
+	
+	var oauthConsumer = new OAuth(
+    	 "http://twitter.com/oauth/request_token",
+    	 "http://twitter.com/oauth/access_token", 
+   	 my_consumer_key,  my_consumer_secret, 
+     	 "1.0", null, "HMAC-SHA1");
+
+	twitterClient = tweasy.init(oauthConsumer, {
+   	 access_token : my_access_token,
+  	access_token_secret : my_access_token_secret,
+	});
+
 });
 // Create the Node.js Server with express
 var app = express.createServer(
-      express.logger()
-    , express.bodyParser()
- );
+       express.logger()
+     , express.bodyParser()
+);
 
 // When the client call the page:3000/var1
 app.get('/:toto', function(req, res){ // we get the var, named it toto :)
@@ -50,16 +62,19 @@ app.get('/:toto', function(req, res){ // we get the var, named it toto :)
 	var status;
 	// We get the date also to make our tweet unique - or sort of. To shunt the API limitations
 	var time = new Date();
-	
-	// Use Tweasy to tweet easily. 
-	time = time.getHours() + ":" + time.getMinutes();
+	var hours = time.getHours();
+	var minutes = time.getMinutes();
+	if (minutes < 10) {
+		minutes = "0" + minutes
+	}
+	time = hours + ":" + minutes;
 	// We open & read the JSON file to get the status connected with the var
 	fs.readFile('valeurPotentio.txt', function (err, data) {
 	  	if (err) throw err;
 	  	list = JSON.parse(data);
 		status = list.cwlStatus[toto];
-		
-		twitterClient.updateStatus("[TestEnCours] " + "Il est " + time + ", " + status, 
+		// Use Tweasy to use the Twitter API easily
+		twitterClient.updateStatus("Il est " + time + ", " + status, 
 		  function(er, resp){
 		    // If it worked you get a nice "you tweet in your console"
 			if (!er) {
