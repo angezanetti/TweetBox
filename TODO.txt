@@ -1,5 +1,0 @@
-- Put the text of the tweet in a JSON file
-- Admin backoffice to edit the JSON file
-
-- Put another potentiometer
-- Add a Webcam ? 

@@ -1,6 +1,6 @@
 {
 	"my_consumer_key": "",
     "my_consumer_secret": "",
-	"access_token : "",
-    "access_token_secret" : ""
+	"access_token" :"",
+   	"access_token_secret" : ""
  }
