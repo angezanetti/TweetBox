@@ -12,7 +12,7 @@ var tweasy = require("tweasy");
 var fs = require('fs');
 var OAuth = require("oauth").OAuth;
 
-module.exports = function(textStatus) { 								// Module used to tweet the status
+module.exports = function(status) { 								// Module used to tweet the status
 
 
 	fs.readFile('json/idTwitter.json', function (err, data) {
@@ -40,7 +40,7 @@ module.exports = function(textStatus) { 								// Module used to tweet the stat
    	 			access_token : my_access_token,
   				access_token_secret : my_access_token_secret,
 			});
-			twitterClient.updateStatus("Il est " + time + ", " + textStatus, // We add the date to the status
+			twitterClient.updateStatus("Il est " + time + ", " + status, // We add the date to the status
 		  	function(er, resp){
 				if (!er) {
 		      		console.log("you tweeted!")
