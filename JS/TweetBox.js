@@ -45,13 +45,11 @@ app.get('/status/', function(req, res){						// Without any id you receive the w
 	console.log('text' + update);
 	res.send('keywords ');
 });
-
-app.get('/signal/:id', function(req, res){ 					// a Get on /signal/id will tweet the status number id
-	var id = req.params['id'];
-	var update = parseStatus(id, 'html', 'get');			// fisrt we gotta get the status
-	tweet(update);											// then we tweet it !
-	res.send('status tweeted !');
-});
+// app.get('/signal/', function(req, res){ 					// /signal/id Makes you tweet the status
+// 	var update = parseStatus('rien', 'html', 'get');
+// 	console.log('text' + update);
+// 	res.send('liste JSON');
+// });
 
 // LE DEL passe pas ..... 
 app.del('/status/:id', function(req, res){ 					// To delete a status in the JSON
