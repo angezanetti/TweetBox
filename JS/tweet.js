@@ -1,3 +1,13 @@
+/*
+ TweetBox
+ 
+
+ created 2011
+ by AngeZanetti <@AngeZanetti> 
+ for CoWorkingLille <http://coworkinglille.com>
+
+licenced under GNU/GPL v2
+*/
 var tweasy = require("tweasy");
 var fs = require('fs');
 var OAuth = require("oauth").OAuth;

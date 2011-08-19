@@ -1,3 +1,13 @@
+/*
+ TweetBox
+ 
+
+ created 2011
+ by AngeZanetti <@AngeZanetti> 
+ for CoWorkingLille <http://coworkinglille.com>
+
+licenced under GNU/GPL v2
+*/
 // Tweetbox requires express & Tweasy to works. Install it with NPM
 var express = require('express');
 var sys = require('sys');
