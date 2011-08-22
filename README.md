@@ -19,10 +19,14 @@ The REST API is implemented to dialog with the NodeJs tweetbox server.
 Here is how to use it : 
 
 GET /status/ 		to get the list of the status
+
 GET /status/id		to get the status with the id 
 					with Accepts set to HTML you'll receive the whole status, with plain text you'll receive a keyword
+					
 GET /signal/id 		to send to twitter API the status
+
 POST /status/id 	to update a status in the JSON list
+
 DEL /status/id 		to delete a status in the JSON list
 
 Bug Tracker
@@ -31,22 +35,6 @@ Bug Tracker
 Have a bug? Please create an issue here on GitHub!
 
 https://github.com/angezanetti/tweetBox/issues
-
-
-
-Developers
-----------
-
-We have included a makefile with convenience methods for working with the bootstrap library.
-
-+ **build** - `make build`
-This will run the less compiler on the bootstrap lib and generate a bootstrap.css and bootstrap.min.css file.
-The lessc compiler is required for this command to run.
-
-+ **watch** - `make watch`
-This is a convenience method for watching your less files and automatically building them whenever you save.
-Watchr is required for this command to run.
-
 
 AUTHORS
 -------
