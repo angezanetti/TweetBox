@@ -12,6 +12,7 @@
 #include <Ethernet.h>
 #include <EthernetDHCP.h>
 #include <EthernetDNS.h>
+#include <NewSoftSerial.h>
 
 // DHCP functions headers
 const char* ip_to_str(const uint8_t*);
@@ -177,6 +178,7 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 byte server[] = { 192,168,1,110 }; // HTTP Local Server !
 
 Client client(server, 3000);
+NewSoftSerial rfidSerial(11, 10);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -200,6 +202,8 @@ void setup() {
   // Ethernet bootstrap
   Serial.println("Launching DHCP asynchronous request...");
   EthernetDHCP.begin(mac, 1);
+  // Serial RFID init
+  rfidSerial.begin(9600);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -347,6 +351,14 @@ void loop(){
     analogWrite(ledYellowPin, LOW);
 //    analogWrite(ledRedPin, LOW);
   }
+  
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // RFID SERIAL
+  if (rfidSerial.available()) {
+      Serial.print("RFID data : ");
+      Serial.println((char)rfidSerial.read());
+  }
+  
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
