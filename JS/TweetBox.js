@@ -14,6 +14,7 @@ var sys = require('sys');
 var fs = require('fs');
 var parseStatus = require('./parseStatus');
 var tweet = require('./tweet');
+var http = require('http');
 
 var app = express.createServer(
        express.logger()
@@ -51,6 +52,25 @@ app.get('/signal/:id', function(req, res){ 					// a Get on /signal/id will twee
 	var update = parseStatus(id, 'html', 'get');			// fisrt we gotta get the status
 	tweet(update);											// then we tweet it !
 	res.send('status tweeted !');
+});
+
+app.get('/member/:id', function(req, res){ 					// a Get on /member/id will display the first name & the number of tickets left
+	var id = req.params['id'];
+    // Request on the externatl web service
+    var options = {
+        host: 'http://coworkinglille.com/simpleticket/home/rfid_data',
+        port: 80,
+        path: '/'+ id
+    };
+    // Parse the response & send it to the arduino board
+    http.get(options, function(res) {
+        console.log("Got response: " + res.statusCode);
+    }).on('error', function(e) {
+        console.log("Got error: " + e.message);
+    });
+    var firstName = res.statusCode.nom;
+    var checkOut = res.statusCode.solde;
+    res.send(res.statusCode.nom + ',' + res.statusCode.solde);
 });
 
 // LE DEL passe pas ..... 
