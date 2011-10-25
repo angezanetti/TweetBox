@@ -18,6 +18,9 @@
 const char* ip_to_str(const uint8_t*);
 void OutputIpAdress();
 
+// Utility function
+void p(char *fmt, ... );
+
 // LCD functions headers
 void LcdCharacter(char character);
 void LcdClear(void);
@@ -28,19 +31,12 @@ void gotoXY(int x, int y);
 void drawBox(void);
 void Scroll(String message);
 
-// Automat States
-typedef enum {
-  TBInitialization,
-  TBReady,
-  TBRequestTweet,
-  TBTweeting,
-  TBTweeted
-} _states;
+// RFID functions headers
+void SendRfidTag(char* szRfidTag);
 
 // The pins to use on the arduino
 const int buttonPin 		= 8;      // pushbutton pin number
-const int ledYellowPin 		= 12;     // yellow led pin number
-//const int ledRedPin 		= 6;      // red led pin number
+const int ledYellowPin 		= 2;     // yellow led pin number
 const int potentiometerPin	= A0;	  // potentiometer analog port
 
 // LCD pins
@@ -65,13 +61,15 @@ int oldeventSelection = 0;
 boolean blinkYellow = true;
 boolean blinkRed = false;
 unsigned long previousMillis = 0;     // will store last time LED was updated
-int interval = 50;
+int interval = 5;
 int currentLedStep = 1;
 int intervalLedStep = 1;
 int scrollInterval = 300;
 unsigned long previousScrollMillis = 0;
 int scrollPosition = -10;
+unsigned long rfidDataCount = 0;
 
+char rfidBuffer[12];
 String tweetMessage;
 
 static const byte ASCII[][5] =
@@ -175,10 +173,9 @@ static const byte ASCII[][5] =
 };
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-byte server[] = { 192,168,1,110 }; // HTTP Local Server !
+byte server[] = { 192,168,1,101 }; // HTTP Local Server !
 
 Client client(server, 3000);
-NewSoftSerial rfidSerial(11, 10);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -192,8 +189,9 @@ void setup() {
 //  pinMode(ledRedPin, OUTPUT);      
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);  
-  // Serial communication for Debug
-  Serial.begin(9600);  
+  // Serial communication for Debug/RFID
+  Serial.begin(9600);
+  memset(rfidBuffer, '\0', 12);
   // LCD bootstrap
   LcdInitialise();
   LcdClear();
@@ -202,8 +200,6 @@ void setup() {
   // Ethernet bootstrap
   Serial.println("Launching DHCP asynchronous request...");
   EthernetDHCP.begin(mac, 1);
-  // Serial RFID init
-  rfidSerial.begin(9600);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -232,17 +228,17 @@ void loop(){
             // save the last step
             previousMillis = currentMillis;
             // change the led intensity
-            analogWrite(ledYellowPin, currentLedStep);
+            analogWrite(ledYellowPin, (currentLedStep<0?0:currentLedStep)/6);
             //Serial.println(currentLedStep);
             // calc our next intensity step
             currentLedStep += intervalLedStep;
-            if (currentLedStep >= 254) {
+            if (currentLedStep >= 400) {
                 intervalLedStep = -1;
             }
-            if (currentLedStep <= 200) {
+            if (currentLedStep <= -200) {
                 intervalLedStep = 1;
             }
-        }
+        }    
     }
     
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -289,6 +285,16 @@ void loop(){
              LcdString("Lunching    ");
              break;
           case 6:
+             {
+             // Read temp sensor
+             int reading = analogRead(1); 
+             float voltage = reading * 5.0;
+             voltage /= 1024.0; 
+             float temperatureC = (voltage - 0.5) * 100;
+             Serial.print(reading); Serial.println(" value");
+             Serial.print(voltage); Serial.println(" volts");
+             Serial.print(temperatureC); Serial.println(" degrees C");
+             }
              LcdString("            ");
              break;
           case 7:
@@ -320,6 +326,7 @@ void loop(){
   	Serial.println("Pushed button state...");
     // turn LED on
     analogWrite(ledYellowPin, 250);
+    tone(9, 1500, 500);
     // Send Tweet
     if (client.connect()) {								// trying with the HTTP server...
 		Serial.println("connected to the HTTP server...");
@@ -337,32 +344,75 @@ void loop(){
 	} else {											// ... else show blinking red led
         // light red led
         analogWrite(ledYellowPin, LOW);
-        for (int i=0; i<10; i++) {
-//            analogWrite(ledRedPin, 250);
-//            delay(100);
-//            analogWrite(ledRedPin, LOW);
-//            delay(100);
-        }
 	}
   } else {
     // Return to waiting state
         gotoXY(4,3);
         LcdString("                ");
     analogWrite(ledYellowPin, LOW);
-//    analogWrite(ledRedPin, LOW);
   }
   
   ////////////////////////////////////////////////////////////////////////////////////////
   // RFID SERIAL
-  if (rfidSerial.available()) {
-      Serial.print("RFID data : ");
-      Serial.println((char)rfidSerial.read());
+  if (Serial.available()) {
+      char c = Serial.read();
+      char newByte[2];
+      newByte[0] = c;
+      newByte[1] = '\0';
+      // add the last chars to the rfid buffer
+      strcat(rfidBuffer, newByte);
+      // check for RFID signature
+      if (strlen(rfidBuffer) == 11) {
+        // did it start with 0x01 0x0b 0x03 ?
+        if (rfidBuffer[0] == 0x1 && rfidBuffer[1] == 0xb && rfidBuffer[2] == 0x3) {
+          // well formed RFID tag
+          Serial.print("RFID data : ");
+          Serial.println(rfidBuffer);
+          // format the RFID String
+          char rfidString[20];
+          memset(rfidString, '\0', 15);
+          snprintf(rfidString,sizeof(rfidString),"%03d.%03d.%03d.%03d.%03d",rfidBuffer[3], rfidBuffer[4], rfidBuffer[5], rfidBuffer[6], rfidBuffer[7], rfidBuffer[8]);
+          // show RFID tag on LCD screen
+          gotoXY(0,2);
+          LcdString(rfidString);
+          // send RFID tag to server
+          tone(9, 1047, 300);
+          SendRfidTag(rfidString);
+          // cleanup stuff
+          memset(rfidBuffer, '\0', 12);
+        } else { // shift current buffer
+          char tempBuffer[12];
+          memset(tempBuffer, '\0', 12);
+          strcpy(tempBuffer, rfidBuffer);
+          strcpy(rfidBuffer, tempBuffer+1);
+          Serial.println("Rotation du buffer rfid");
+        }
+      }
+      rfidDataCount++;
   }
-  
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
+
+// Send RFID tag to server
+void SendRfidTag(char* szRfidTag)
+{
+	// connect ethernet shiel to server
+    if (client.connect()) {
+		Serial.println("connected to the HTTP server...");
+		// Make our HTTP request:
+		String url = "GET /member/";
+		url.concat(szRfidTag);
+		url.concat(" HTTP/1.0 \nAccept: text/plain\n");
+		Serial.println(url);
+		// and send it to the HTTP server
+		client.println(url);
+		client.println();
+		client.stop();
+		// wait a litle bit in case the user fall asleep on the button ;)
+		delay(800);
+}
 
 // Output IP Adress or DHCP Status
 void OutputIpAdress()
@@ -412,6 +462,17 @@ const char* ip_to_str(const uint8_t* ipAddr)
   return buf;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+
+void p(char *fmt, ... ){
+        char tmp[128]; // resulting string limited to 128 chars
+        va_list args;
+        va_start (args, fmt );
+        vsnprintf(tmp, 128, fmt, args);
+        va_end (args);
+        Serial.print(tmp);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
