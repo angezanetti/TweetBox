@@ -412,6 +412,7 @@ void SendRfidTag(char* szRfidTag)
 		client.stop();
 		// wait a litle bit in case the user fall asleep on the button ;)
 		delay(800);
+	}
 }
 
 // Output IP Adress or DHCP Status
