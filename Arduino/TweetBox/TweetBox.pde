@@ -253,7 +253,6 @@ void loop(){
     
     ////////////////////////////////////////////////////////////////////////////////////////
     // HARDWARE Potentiometer Stuff
-    buttonState = digitalRead(buttonPin);
     // Work on approx PI angle
     int potarLevel = analogRead(potentiometerPin);
     potarLevel = constrain(potarLevel, 75, 900);
@@ -320,6 +319,7 @@ void loop(){
   
   ////////////////////////////////////////////////////////////////////////////////////////
   // TWITTER BUTTON
+  buttonState = digitalRead(buttonPin);
   if (buttonState == LOW) {
         gotoXY(4,3);
         LcdString("   Tweet !  ");
@@ -347,7 +347,7 @@ void loop(){
 	}
   } else {
     // Return to waiting state
-        gotoXY(4,3);
+        gotoXY(6,3);
         LcdString("                ");
     analogWrite(ledYellowPin, LOW);
   }
@@ -371,7 +371,12 @@ void loop(){
           // format the RFID String
           char rfidString[20];
           memset(rfidString, '\0', 15);
-          snprintf(rfidString,sizeof(rfidString),"%03d.%03d.%03d.%03d.%03d",rfidBuffer[3], rfidBuffer[4], rfidBuffer[5], rfidBuffer[6], rfidBuffer[7], rfidBuffer[8]);
+            unsigned char b1 = rfidBuffer[3];
+            unsigned char b2 = rfidBuffer[4];
+            unsigned char b3 = rfidBuffer[5];
+            unsigned char b4 = rfidBuffer[6];
+            unsigned char b5 = rfidBuffer[7];
+          snprintf(rfidString,20,"%02x%02x%02x%02x%02x",b1, b2, b3, b4, b5);
           // show RFID tag on LCD screen
           gotoXY(0,2);
           LcdString(rfidString);
