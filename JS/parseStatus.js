@@ -27,18 +27,18 @@ module.exports = function(idxStatus, type, method, newStatus, newKeyword) {
 
 function parseJSON (id, type) {
 	var data = fs.readFileSync('json/listeStatus.json');
-	if (type == 'html') {									
-		if (id == 'rien') {										// without any id it returns the whole list 
+	if (type === 'application/json') {									
+		if (id == null) {										// without any id it returns the whole list 
+			console.log("null detected");
 			return data;
-		}
-		else {													// else it show the status with the id in params
+		} else {													// else it show the status with the id in params
 			var list = JSON.parse(data);
 			console.log(list);
 			var fullStatus = list.fullStatus[id];
 			return fullStatus;
 		};
-	}
-	else if (type == 'text/plain') {							// if it accept only text/plain then it return a keyword only
+	} else if (type == 'text/plain') {							// if it accept only text/plain then it return a keyword only
+		console.log('test/plain');
 		list = JSON.parse(data);
 		var keywordStatus = list.keywords[id];
 		return keywordStatus;

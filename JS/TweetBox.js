@@ -42,9 +42,11 @@ app.get('/status/:id', function(req, res){ 					// Case of you want the status w
 	}
 });
 app.get('/status/', function(req, res){						// Without any id you receive the whole list
-	var update = parseStatus('rien', 'text/plain', 'get');	
-	console.log('text' + update);
-	res.send('keywords ');
+	if (req.accepts('application/json')) {
+		var update = parseStatus(null, 'application/json', 'get');
+		console.log('text' + update);
+		res.send(JSON.parse(update));
+	}
 });
 
 app.get('/signal/:id', function(req, res){ 					// a Get on /signal/id will tweet the status number id
@@ -106,4 +108,4 @@ app.post('/status/:id/:newStatus/:newKey', function(req, res){ // To update a st
 
 // Our server wait the connecitons on the 3000 port.
 app.listen(3000);
-console.log('Express app started on port 3030');
+console.log('Express app started on port 3000');

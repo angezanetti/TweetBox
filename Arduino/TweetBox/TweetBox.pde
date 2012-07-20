@@ -172,10 +172,13 @@ static const byte ASCII[][5] =
     ,{0x00, 0x06, 0x09, 0x09, 0x06} // 7f →
 };
 
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-byte server[] = { 192,168,1,101 }; // HTTP Local Server !
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xDD };
+byte server[] = { 192,168,1,103 }; // HTTP Local Server !
+byte ip[] = { 192, 168, 1, 253 }; 
+byte gateway[] = { 192, 168, 1, 254 }; 
+byte subnet[] = { 255, 255, 255, 0 }; 
 
-Client client(server, 3000);
+Client client(server, 3002);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -199,7 +202,8 @@ void setup() {
   LcdString("  TweetBox  ");
   // Ethernet bootstrap
   Serial.println("Launching DHCP asynchronous request...");
-  EthernetDHCP.begin(mac, 1);
+  //EthernetDHCP.begin(mac, 1);
+  Ethernet.begin(mac, ip);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -213,14 +217,14 @@ void loop(){
     
     ////////////////////////////////////////////////////////////////////////////////////////
     // ETHERNET State Polling
-    static DhcpState prevState = DhcpStateNone;
+/*    static DhcpState prevState = DhcpStateNone;
     static unsigned long prevTime = 0;
     DhcpState state = EthernetDHCP.poll();
     if (prevState != state) {
         OutputIpAdress();
         prevState = state;
     }
-  
+*/  
     ////////////////////////////////////////////////////////////////////////////////////////
     // Blinking led
     if (blinkYellow) {
@@ -331,7 +335,7 @@ void loop(){
     if (client.connect()) {								// trying with the HTTP server...
 		Serial.println("connected to the HTTP server...");
 		// Make our HTTP request:
-		String url = "GET /";
+		String url = "GET /signal/";
 		url.concat(eventSelection);
 		url.concat(" HTTP/1.0");
 		Serial.println(url);
