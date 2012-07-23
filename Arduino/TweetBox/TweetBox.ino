@@ -10,13 +10,9 @@
 #include <SPI.h>
 #endif
 #include <Ethernet.h>
-#include <EthernetDHCP.h>
-#include <EthernetDNS.h>
-#include <NewSoftSerial.h>
 
-// DHCP functions headers
+// IP functions headers
 const char* ip_to_str(const uint8_t*);
-void OutputIpAdress();
 
 // Utility function
 void p(char *fmt, ... );
@@ -178,7 +174,7 @@ byte ip[] = { 192, 168, 1, 253 };
 byte gateway[] = { 192, 168, 1, 254 }; 
 byte subnet[] = { 255, 255, 255, 0 }; 
 
-Client client(server, 3002);
+EthernetClient client;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -189,7 +185,6 @@ Client client(server, 3002);
 void setup() {
   // initialize the LED pin as an output:
   pinMode(ledYellowPin, OUTPUT);      
-//  pinMode(ledRedPin, OUTPUT);      
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT);  
   // Serial communication for Debug/RFID
@@ -201,8 +196,6 @@ void setup() {
   gotoXY(0,0);
   LcdString("  TweetBox  ");
   // Ethernet bootstrap
-  Serial.println("Launching DHCP asynchronous request...");
-  //EthernetDHCP.begin(mac, 1);
   Ethernet.begin(mac, ip);
 }
 
@@ -332,7 +325,7 @@ void loop(){
     analogWrite(ledYellowPin, 250);
     tone(9, 1500, 500);
     // Send Tweet
-    if (client.connect()) {								// trying with the HTTP server...
+    if (client.connect(server, 3002)) {								// trying with the HTTP server...
 		Serial.println("connected to the HTTP server...");
 		// Make our HTTP request:
 		String url = "GET /signal/";
@@ -408,7 +401,7 @@ void loop(){
 void SendRfidTag(char* szRfidTag)
 {
 	// connect ethernet shiel to server
-    if (client.connect()) {
+    if (client.connect(server, 3002)) {
 		Serial.println("connected to the HTTP server...");
 		// Make our HTTP request:
 		String url = "GET /member/";
@@ -422,46 +415,6 @@ void SendRfidTag(char* szRfidTag)
 		// wait a litle bit in case the user fall asleep on the button ;)
 		delay(800);
 	}
-}
-
-// Output IP Adress or DHCP Status
-void OutputIpAdress()
-{
-  DhcpState state = EthernetDHCP.poll();
-  switch (state) {
-    case DhcpStateDiscovering:
-      Serial.print("Discovering servers.");
-      //gotoXY(0,5);
-      //LcdString("- DHCP init  ");
-      break;
-    case DhcpStateRequesting:
-      Serial.print("Requesting lease.");
-      //gotoXY(0,5);
-      //LcdString("- DHCP lease ");
-      break;
-    case DhcpStateRenewing:
-      Serial.print("Renewing lease.");
-      //gotoXY(0,5);
-      //LcdString("- DHCP renew ");
-      break;
-    case DhcpStateLeased:
-      Serial.println("Obtained lease !");
-      const byte* ipAddr = EthernetDHCP.ipAddress();
-      const byte* gatewayAddr = EthernetDHCP.gatewayIpAddress();
-      const byte* dnsAddr = EthernetDHCP.dnsIpAddress();
-      //EthernetDNS.setDNSServer(dnsAddr);
-      // Debug output
-      Serial.print("My IP address is ");
-      Serial.println(ip_to_str(ipAddr));
-      Serial.print("Gateway IP address is ");
-      Serial.println(ip_to_str(gatewayAddr));
-      Serial.print("DNS IP address is ");
-      Serial.println(ip_to_str(dnsAddr));
-      Serial.println(ip_to_str(ipAddr));
-      //gotoXY(0,5);
-      //LcdString((char*)ip_to_str(ipAddr));
-      break;
-  }
 }
 
 // Just a utility function to nicely format an IP address.
